@@ -22,6 +22,22 @@ export default function RegisterPage() {
       setError("La password deve contenere almeno 8 caratteri.");
       return;
     }
+    if (!/[A-Z]/.test(password)) {
+      setError("La password deve contenere almeno una lettera maiuscola.");
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setError("La password deve contenere almeno una lettera minuscola.");
+      return;
+    }
+    if (!/\d/.test(password)) {
+      setError("La password deve contenere almeno un numero.");
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setError("La password deve contenere almeno un carattere speciale (es. !, @, #).");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -102,10 +118,13 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Almeno 8 caratteri"
+              placeholder="Es. MyPass1!"
               className={inputClass}
               autoComplete="new-password"
             />
+            <p className="mt-1.5 text-xs text-zinc-600">
+              Min. 8 caratteri · maiuscola · minuscola · numero · carattere speciale
+            </p>
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-zinc-500">
