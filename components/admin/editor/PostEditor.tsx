@@ -47,7 +47,7 @@ export default function PostEditor({ initialData, postId }: PostEditorProps) {
   const [seoDescription, setSeoDescription] = useState(initialData?.seoDescription ?? "");
   const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
   const [categoryIds, setCategoryIds] = useState<string[]>(initialData?.categoryIds ?? []);
-  const [publishedAt, _setPublishedAt] = useState<string | null>(initialData?.publishedAt ?? null);
+  const [publishedAt] = useState<string | null>(initialData?.publishedAt ?? null);
 
   // Auto-generate slug from title on new posts
   useEffect(() => {
