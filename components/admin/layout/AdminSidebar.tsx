@@ -18,8 +18,10 @@ import {
   ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
+  X,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { useAdminMenu } from "@/components/admin/layout/AdminMenuContext";
 
 interface NavItem {
   label: string;
@@ -109,8 +111,9 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === "ADMIN";
+  const { mobileOpen, setMobileOpen } = useAdminMenu();
 
-  // Persist collapse state
+  // Persist collapse state (desktop only)
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("admin_sidebar_collapsed") === "1";
@@ -137,24 +140,35 @@ export default function AdminSidebar() {
     return path === "/admin" ? pathname === "/admin" : pathname.startsWith(path);
   };
 
-  return (
+  const sidebarContent = (
     <aside
       className={`${
         collapsed ? "w-14" : "w-56"
-      } flex-shrink-0 bg-[#1d2327] text-[#a7aaad] flex flex-col min-h-screen transition-all duration-200`}
+      } flex-shrink-0 bg-[#1d2327] text-[#a7aaad] flex flex-col h-full transition-all duration-200`}
     >
       {/* Branding row */}
       <div className="flex items-center justify-between px-3 py-3 border-b border-[#3c434a]">
         {!collapsed && (
           <span className="text-white font-semibold text-sm truncate">Admin</span>
         )}
-        <button
-          onClick={() => setCollapsed((p) => !p)}
-          className="text-[#a7aaad] hover:text-white p-1 rounded"
-          title={collapsed ? "Espandi menu" : "Comprimi menu"}
-        >
-          {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-        </button>
+        <div className="flex items-center gap-1">
+          {/* Close button on mobile */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="md:hidden text-[#a7aaad] hover:text-white p-1 rounded"
+            title="Chiudi menu"
+          >
+            <X size={16} />
+          </button>
+          {/* Collapse button on desktop */}
+          <button
+            onClick={() => setCollapsed((p) => !p)}
+            className="hidden md:block text-[#a7aaad] hover:text-white p-1 rounded"
+            title={collapsed ? "Espandi menu" : "Comprimi menu"}
+          >
+            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
+        </div>
       </div>
 
       {/* Nav items */}
@@ -172,6 +186,7 @@ export default function AdminSidebar() {
                 {item.href && !hasChildren ? (
                   <Link
                     href={item.href}
+                    onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 text-sm hover:bg-[#2c3338] hover:text-white transition-colors ${
                       isItemActive ? "bg-[#2c3338] text-white border-l-[3px] border-blue-400" : ""
                     }`}
@@ -205,6 +220,7 @@ export default function AdminSidebar() {
                           <Link
                             key={child.label}
                             href={child.href}
+                            onClick={() => setMobileOpen(false)}
                             className={`block pl-10 pr-3 py-1.5 text-sm hover:bg-[#2c3338] hover:text-white transition-colors ${
                               isActive(child.href) ? "text-blue-300 bg-[#1e2c3a] font-medium" : ""
                             }`}
@@ -221,5 +237,29 @@ export default function AdminSidebar() {
           })}
       </nav>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible */}
+      <div className="hidden md:flex flex-shrink-0 min-h-screen">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile sidebar — fixed overlay drawer */}
+      {mobileOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/60 md:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+          {/* Drawer */}
+          <div className="fixed inset-y-0 left-0 z-50 flex md:hidden">
+            {sidebarContent}
+          </div>
+        </>
+      )}
+    </>
   );
 }

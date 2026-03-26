@@ -8,10 +8,12 @@ import Script from "next/script";
 import { prisma } from "@/lib/prisma";
 import "@/app/globals.css";
 
+export const dynamic = "force-dynamic";
+
 async function getSettings() {
   try {
     const rows = await prisma.setting.findMany({
-      where: { key: { in: ["site_name", "seo_title", "seo_description", "og_image", "favicon", "ga_id", "tagline"] } },
+      where: { key: { in: ["site_name", "seo_title", "seo_description", "og_image", "favicon", "ga_id", "tagline", "primary_color"] } },
     });
     return Object.fromEntries(rows.map((r) => [r.key, String(r.value ?? "").replace(/^"|"$/g, "")]));
   } catch {
@@ -47,6 +49,7 @@ export default async function RootLayout({
   const messages = await getMessages();
   const s = await getSettings();
   const gaId = s.ga_id || "";
+  const primaryColor = s.primary_color || "";
 
   const cookieStore = await cookies();
   const rawDevice = cookieStore.get(DEVICE_COOKIE)?.value;
@@ -55,6 +58,11 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
+      <head>
+        {primaryColor && (
+          <style>{`:root { --color-accent: ${primaryColor}; --color-accent-hover: ${primaryColor}; }`}</style>
+        )}
+      </head>
       <body>
         {gaId && (
           <>

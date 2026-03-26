@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { Upload } from "lucide-react";
 import NavManagerTab from "@/components/admin/settings/NavManagerTab";
 import type { LogoShape } from "@/lib/nav/types";
 
@@ -73,6 +74,7 @@ export default function AdminSettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [faviconUploading, setFaviconUploading] = useState(false);
   const [removingBg, setRemovingBg] = useState(false);
 
   useEffect(() => {
@@ -239,7 +241,7 @@ export default function AdminSettingsPage() {
                       }
                     }}
                   />
-                  {logoUploading ? "Caricamento…" : "📁 Carica logo"}
+                  {logoUploading ? "Caricamento…" : <><Upload size={13} /> Carica logo</>}
                 </label>
 
                 {get("logo") && (
@@ -347,21 +349,72 @@ export default function AdminSettingsPage() {
         {/* ── Aspetto ── */}
         {tab === "aspetto" && (
           <>
-            <Field
-              label="Favicon URL"
-              id="favicon"
-              value={get("favicon")}
-              onChange={(v) => set("favicon", v)}
-              placeholder="https://miosito.it/favicon.ico"
-            />
-            <Field
-              label="Colore primario"
-              id="primary_color"
-              value={get("primary_color") || "#000000"}
-              onChange={(v) => set("primary_color", v)}
-              type="color"
-              description="Colore principale usato nel tema del sito."
-            />
+            {/* Favicon */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Favicon URL</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={get("favicon")}
+                  onChange={(e) => set("favicon", e.target.value)}
+                  placeholder="https://miosito.it/favicon.ico"
+                  className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2271b1]"
+                />
+                {get("favicon") && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={get("favicon")} alt="favicon" className="h-9 w-9 object-contain border border-gray-200 rounded p-1 bg-white" />
+                )}
+              </div>
+              <div className="mt-2">
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded cursor-pointer transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*,.ico"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setFaviconUploading(true);
+                      try {
+                        const fd = new FormData();
+                        fd.append("file", file);
+                        const res = await fetch("/api/media/upload", { method: "POST", body: fd });
+                        if (res.ok) {
+                          const data = await res.json();
+                          set("favicon", data.media.url);
+                        }
+                      } finally {
+                        setFaviconUploading(false);
+                      }
+                    }}
+                  />
+                  <Upload size={13} />
+                  {faviconUploading ? "Caricamento…" : "Carica favicon"}
+                </label>
+              </div>
+            </div>
+
+            {/* Colore primario */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Colore primario</label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="primary_color"
+                  type="color"
+                  value={get("primary_color") || "#6366f1"}
+                  onChange={(e) => set("primary_color", e.target.value)}
+                  className="h-9 w-16 rounded border border-gray-300 cursor-pointer p-0.5"
+                />
+                <input
+                  type="text"
+                  value={get("primary_color") || "#6366f1"}
+                  onChange={(e) => set("primary_color", e.target.value)}
+                  placeholder="#6366f1"
+                  className="w-28 rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2271b1]"
+                />
+                <span className="text-xs text-gray-500">Colore principale del tema (accent)</span>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
               <input
                 id="show_reviews_marquee"

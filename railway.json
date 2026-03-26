@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "npx prisma migrate deploy && npx tsx scripts/make-admin.ts hornytulpas@proton.me; next start",
+    "startCommand": "npx prisma migrate deploy && next start",
     "healthcheckPath": "/",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3

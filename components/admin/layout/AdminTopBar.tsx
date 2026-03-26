@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import { Plus, ExternalLink, ChevronDown, User, LogOut, AlertCircle, Home } from "lucide-react";
+import { Plus, ExternalLink, ChevronDown, User, LogOut, AlertCircle, Home, Menu } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { useAdminMenu } from "@/components/admin/layout/AdminMenuContext";
 import { useRouter } from "next/navigation";
 
 function getTokenExpiry(): number | null {
@@ -22,6 +23,7 @@ export default function AdminTopBar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
+  const { setMobileOpen } = useAdminMenu();
 
   const [newOpen, setNewOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
@@ -61,6 +63,15 @@ export default function AdminTopBar() {
 
   return (
     <header className="h-10 bg-[#1d2327] border-b border-[#3c434a] flex items-center px-4 gap-4 z-50">
+      {/* Hamburger — mobile only */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden text-[#a7aaad] hover:text-white transition-colors"
+        aria-label="Apri menu"
+      >
+        <Menu size={18} />
+      </button>
+
       {/* Back to site */}
       <Link
         href="/"
