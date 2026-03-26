@@ -20,7 +20,6 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@ckeditor/ckeditor5-react": "^9.5.0",
     "@imgly/background-removal-node": "^1.4.5",
     "@prisma/client": "^6.4.0",
     "bcryptjs": "^2.4.3",

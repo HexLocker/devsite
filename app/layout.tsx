@@ -2,15 +2,31 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { cookies } from "next/headers";
+import { cache } from "react";
+import { Archivo, DM_Sans } from "next/font/google";
 import { DeviceProvider } from "@/lib/device/DeviceContext";
 import { DEVICE_COOKIE, type DeviceType } from "@/lib/device/detectDevice";
 import Script from "next/script";
 import { prisma } from "@/lib/prisma";
 import "@/app/globals.css";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 5;
 
-async function getSettings() {
+const archivo = Archivo({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-archivo",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
+
+const getSettings = cache(async () => {
   try {
     const rows = await prisma.setting.findMany({
       where: { key: { in: ["site_name", "seo_title", "seo_description", "og_image", "favicon", "ga_id", "tagline", "primary_color"] } },
@@ -19,7 +35,7 @@ async function getSettings() {
   } catch {
     return {} as Record<string, string>;
   }
-}
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
@@ -57,7 +73,7 @@ export default async function RootLayout({
     rawDevice === "phone" || rawDevice === "pc" ? rawDevice : "pc";
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${archivo.variable} ${dmSans.variable}`}>
       <head>
         {primaryColor && (
           <style>{`:root { --color-accent: ${primaryColor}; --color-accent-hover: ${primaryColor}; }`}</style>

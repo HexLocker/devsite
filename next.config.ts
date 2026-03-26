@@ -11,8 +11,8 @@ const csp = [
   isDev
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
     : "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self' data:",
   "img-src 'self' data: blob: https:",
   "connect-src 'self' https:",
   "frame-ancestors 'none'",
@@ -24,7 +24,11 @@ const nextConfig: NextConfig = {
   transpilePackages: ["three", "postprocessing"],
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [],
+    remotePatterns: [
+      { protocol: "https", hostname: "**.railway.app" },
+      { protocol: "https", hostname: "**.up.railway.app" },
+      { protocol: "https", hostname: "**" },
+    ],
   },
   headers: async () => [
     {
