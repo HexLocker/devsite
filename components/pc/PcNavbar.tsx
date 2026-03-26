@@ -141,6 +141,13 @@ export default function PcNavbar({ siteName = "DevSite", logoUrl = "", logoShape
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setUserOpen(false)} />
                   <div className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-[#111118]/95 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] animate-slide-down">
+                    <Link
+                      href="/account"
+                      className="block px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-colors"
+                      onClick={() => setUserOpen(false)}
+                    >
+                      {t("account")}
+                    </Link>
                     {(user.role === "ADMIN" || user.role === "EDITOR") && (
                       <Link
                         href="/admin"
@@ -150,6 +157,7 @@ export default function PcNavbar({ siteName = "DevSite", logoUrl = "", logoShape
                         {t("admin")}
                       </Link>
                     )}
+                    <div className="my-1 h-px bg-white/[0.06]" />
                     <button
                       type="button"
                       onClick={() => { logout(); setUserOpen(false); }}

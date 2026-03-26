@@ -48,7 +48,8 @@ model User {
   email        String   @unique
   passwordHash String   @map("password_hash")
   name         String?
-  avatar       String?  // URL or storage key
+  avatar       String?
+  phone        String?
   role         Role     @default(READER)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -58,9 +59,49 @@ model User {
   mediaUploads Media[]
   activityLogs ActivityLog[]
   reviews      Review[]
+  addresses    Address[]
+  savedCards   SavedCard[]
 
   @@index([email])
   @@map("users")
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  label      String   @default("Casa")
+  firstName  String   @map("first_name")
+  lastName   String   @map("last_name")
+  line1      String
+  line2      String?
+  city       String
+  province   String?
+  postalCode String   @map("postal_code")
+  country    String   @default("IT")
+  isDefault  Boolean  @default(false) @map("is_default")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model SavedCard {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  brand       String
+  last4       String
+  expiryMonth Int      @map("expiry_month")
+  expiryYear  Int      @map("expiry_year")
+  holderName  String   @map("holder_name")
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_cards")
 }
 
 model Page {

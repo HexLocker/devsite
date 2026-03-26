@@ -168,6 +168,13 @@ export default function PhoneNavbar({ siteName = "DevSite", logoUrl = "", logoSh
                   <User size={15} strokeWidth={1.8} />
                   <span>{user.name ?? user.email.split("@")[0]}</span>
                 </div>
+                <Link
+                  href="/account"
+                  onClick={close}
+                  className="block w-full rounded-xl border border-white/[0.08] bg-white/[0.04] py-3 text-center text-sm font-semibold text-zinc-200 hover:bg-white/[0.07] transition-colors"
+                >
+                  {t("account")}
+                </Link>
                 {(user.role === "ADMIN" || user.role === "EDITOR") && (
                   <Link
                     href="/admin"
