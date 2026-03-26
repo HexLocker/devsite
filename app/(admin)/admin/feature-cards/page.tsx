@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Plus, Trash2, GripVertical, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
+import { Plus, Trash2, GripVertical, Eye, EyeOff, AlertCircle, CheckCircle, Pencil, X } from "lucide-react";
 import ConfirmDialog from "@/components/admin/ui/ConfirmDialog";
 
 interface FeatureCard {
@@ -73,6 +73,7 @@ export default function AdminFeatureCardsPage() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchCards = useCallback(async () => {
     setLoading(true);
@@ -95,6 +96,30 @@ export default function AdminFeatureCardsPage() {
     setFormSuccess(false);
   }
 
+  function startEdit(card: FeatureCard) {
+    setEditingId(card.id);
+    setForm({
+      categoryTag: card.categoryTag,
+      title: card.title,
+      description: card.description ?? "",
+      icon: card.icon,
+      href: card.href ?? "",
+      color: card.color,
+      order: card.order,
+      active: card.active,
+    });
+    setFormError("");
+    setFormSuccess(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(INITIAL_FORM);
+    setFormError("");
+    setFormSuccess(false);
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!form.categoryTag.trim()) { setFormError("Il tag categoria è obbligatorio."); return; }
@@ -102,28 +127,48 @@ export default function AdminFeatureCardsPage() {
 
     setSaving(true);
     setFormError("");
+    const payload = {
+      categoryTag: form.categoryTag.trim().toUpperCase(),
+      title: form.title.trim(),
+      description: form.description.trim() || undefined,
+      icon: form.icon.trim() || "Star",
+      href: form.href.trim() || undefined,
+      color: form.color,
+      order: Number(form.order),
+      active: form.active,
+    };
+
     try {
-      const res = await fetch("/api/feature-cards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          categoryTag: form.categoryTag.trim().toUpperCase(),
-          title: form.title.trim(),
-          description: form.description.trim() || undefined,
-          icon: form.icon.trim() || "Star",
-          href: form.href.trim() || undefined,
-          color: form.color,
-          order: Number(form.order),
-          active: form.active,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setFormError(data?.error ?? "Errore durante la creazione.");
-        return;
+      if (editingId) {
+        // Edit mode — PATCH
+        const res = await fetch(`/api/feature-cards/${editingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data?.error ?? "Errore durante l'aggiornamento.");
+          return;
+        }
+        setFormSuccess(true);
+        setEditingId(null);
+        setForm(INITIAL_FORM);
+      } else {
+        // Create mode — POST
+        const res = await fetch("/api/feature-cards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data?.error ?? "Errore durante la creazione.");
+          return;
+        }
+        setFormSuccess(true);
+        setForm(INITIAL_FORM);
       }
-      setFormSuccess(true);
-      setForm(INITIAL_FORM);
       fetchCards();
     } finally {
       setSaving(false);
@@ -159,7 +204,7 @@ export default function AdminFeatureCardsPage() {
       {/* Create form */}
       <div className="rounded-lg border border-[#e2e4e7] bg-white p-6">
         <h2 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Plus size={16} className="text-[#2271b1]" /> Aggiungi nuova card
+          {editingId ? <><Pencil size={16} className="text-[#2271b1]" /> Modifica card</> : <><Plus size={16} className="text-[#2271b1]" /> Aggiungi nuova card</>}
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -288,18 +333,29 @@ export default function AdminFeatureCardsPage() {
             {formSuccess && (
               <div className="flex items-center gap-1.5 text-sm text-green-600">
                 <CheckCircle size={14} />
-                Card creata con successo!
+                {editingId ? "Card aggiornata con successo!" : "Card creata con successo!"}
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex items-center gap-1.5 rounded bg-[#2271b1] px-4 py-2 text-sm font-medium text-white hover:bg-[#1761a8] transition-colors disabled:opacity-60"
-            >
-              <Plus size={14} />
-              {saving ? "Salvataggio…" : "Aggiungi card"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center gap-1.5 rounded bg-[#2271b1] px-4 py-2 text-sm font-medium text-white hover:bg-[#1761a8] transition-colors disabled:opacity-60"
+              >
+                {editingId ? <Pencil size={14} /> : <Plus size={14} />}
+                {saving ? "Salvataggio…" : editingId ? "Aggiorna card" : "Aggiungi card"}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="inline-flex items-center gap-1.5 rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <X size={14} /> Annulla
+                </button>
+              )}
+            </div>
           </form>
 
           {/* Live preview */}
@@ -374,6 +430,13 @@ export default function AdminFeatureCardsPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => startEdit(card)}
+                      title="Modifica"
+                      className={`p-1.5 rounded transition-colors ${editingId === card.id ? "text-[#2271b1] bg-blue-50" : "text-gray-400 hover:text-[#2271b1] hover:bg-blue-50"}`}
+                    >
+                      <Pencil size={15} />
+                    </button>
                     <button
                       onClick={() => handleToggleActive(card)}
                       title={card.active ? "Nascondi" : "Mostra"}

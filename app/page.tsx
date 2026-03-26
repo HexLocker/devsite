@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const t = await getTranslations("home");
 
-  const [siteSettings, latestPosts, featuredProducts, featureCards, approvedReviews, blogPage, shopPage] = await Promise.all([
+  const [siteSettings, latestPosts, featuredProducts, featureCards, approvedReviews, blogPage, shopPage, homePage] = await Promise.all([
     getSiteSettings(),
     prisma.post.findMany({
       where: { status: "PUBLISHED" },
@@ -69,11 +69,13 @@ export default async function HomePage() {
     }),
     prisma.page.findFirst({ where: { type: "BLOG", status: "PUBLISHED" }, select: { slug: true } }),
     prisma.page.findFirst({ where: { type: "SHOP", status: "PUBLISHED" }, select: { slug: true } }),
+    prisma.page.findFirst({ where: { slug: "home" }, select: { content: true } }),
   ]);
 
   const { siteName, logoUrl, logoShape, navItems } = siteSettings;
-  const blogSlug = blogPage?.slug ?? "blog";
-  const shopSlug = shopPage?.slug ?? "shop";
+  const blogSlug = blogPage?.slug ?? null;
+  const shopSlug = shopPage?.slug ?? null;
+  const homeContent = homePage?.content?.trim() ?? "";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -120,22 +122,38 @@ export default async function HomePage() {
             {t("hero.subtitle")}
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link
-              href={`/${shopSlug}`}
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-semibold text-[#09090B] transition-all hover:bg-zinc-100 hover:gap-3 active:scale-[0.98]"
-            >
-              {t("hero.cta")}
-              <ArrowRight size={15} strokeWidth={2.2} />
-            </Link>
-            <Link
-              href={`/${blogSlug}`}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold text-zinc-300 transition-all hover:bg-white/[0.08] hover:border-white/20 active:scale-[0.98]"
-            >
-              Leggi il blog
-            </Link>
+            {shopSlug && (
+              <Link
+                href={`/${shopSlug}`}
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-semibold text-[#09090B] transition-all hover:bg-zinc-100 hover:gap-3 active:scale-[0.98]"
+              >
+                {t("hero.cta")}
+                <ArrowRight size={15} strokeWidth={2.2} />
+              </Link>
+            )}
+            {blogSlug && (
+              <Link
+                href={`/${blogSlug}`}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-7 py-3.5 text-sm font-semibold text-zinc-300 transition-all hover:bg-white/[0.08] hover:border-white/20 active:scale-[0.98]"
+              >
+                Leggi il blog
+              </Link>
+            )}
           </div>
         </div>
       </section>
+
+      {/* Home page custom content (editable from admin → Pages → Home) */}
+      {homeContent && (
+        <section className="py-16" style={{ backgroundColor: "#09090B" }}>
+          <div className="mx-auto max-w-4xl px-6">
+            <div
+              className="prose prose-invert prose-gray max-w-none"
+              dangerouslySetInnerHTML={{ __html: homeContent }}
+            />
+          </div>
+        </section>
+      )}
 
       {/* Feature Cards — powered by DB */}
       <section className="relative overflow-hidden py-16 sm:py-20" style={{ backgroundColor: "#07070F" }}>
@@ -169,7 +187,7 @@ export default async function HomePage() {
       )}
 
       {/* Latest Posts */}
-      {latestPosts.length > 0 && (
+      {latestPosts.length > 0 && blogSlug && (
         <section className="py-20" style={{ backgroundColor: "#09090B" }}>
           <div className="mx-auto max-w-6xl px-6">
             <div className="mb-12 flex items-end justify-between">
@@ -204,7 +222,7 @@ export default async function HomePage() {
       )}
 
       {/* Featured Products */}
-      {featuredProducts.length > 0 && (
+      {featuredProducts.length > 0 && shopSlug && (
         <section className="py-20 border-t border-white/[0.06]" style={{ backgroundColor: "#09090B" }}>
           <div className="mx-auto max-w-6xl px-6">
             <div className="mb-12 flex items-end justify-between">
@@ -226,6 +244,7 @@ export default async function HomePage() {
                     key={p.id}
                     id={p.id}
                     slug={p.slug}
+                    pageSlug={shopSlug ?? "shop"}
                     name={p.name}
                     price={Number(p.price)}
                     images={p.images as string[]}

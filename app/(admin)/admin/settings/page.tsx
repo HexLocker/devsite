@@ -196,6 +196,13 @@ export default function AdminSettingsPage() {
               placeholder="admin@esempio.it"
             />
             <Field
+              label="Località (visualizzata nel footer)"
+              id="contact_location"
+              value={get("contact_location")}
+              onChange={(v) => set("contact_location", v)}
+              placeholder="Roma, Italia"
+            />
+            <Field
               label="Testo footer"
               id="footer_text"
               value={get("footer_text")}

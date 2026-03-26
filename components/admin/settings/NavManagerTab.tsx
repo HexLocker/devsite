@@ -45,11 +45,20 @@ export default function NavManagerTab() {
       if (settingsRes.ok) {
         const data = await settingsRes.json();
         const raw = data.settings?.nav_items;
+        let parsed: NavItem[] = [];
         if (Array.isArray(raw)) {
-          setItems(raw as NavItem[]);
+          parsed = raw as NavItem[];
         } else if (typeof raw === "string") {
-          try { setItems(JSON.parse(raw)); } catch { /* keep empty */ }
+          try { parsed = JSON.parse(raw); } catch { /* keep empty */ }
         }
+        // Always ensure the Home "/" item exists
+        if (!parsed.some((item) => item.href === "/")) {
+          parsed = [
+            { id: "nav-home", label: "Home", href: "/", type: "link", order: 0 },
+            ...parsed,
+          ];
+        }
+        setItems(parsed);
       }
 
       if (pagesRes.ok) {

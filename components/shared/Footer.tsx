@@ -8,12 +8,14 @@ export default async function Footer() {
   const year = new Date().getFullYear();
 
   const settingsRows = await prisma.setting.findMany({
-    where: { key: { in: ["site_name", "footer_text", "tagline", "nav_items"] } },
+    where: { key: { in: ["site_name", "footer_text", "tagline", "nav_items", "admin_email", "contact_location"] } },
   });
   const s = Object.fromEntries(settingsRows.map((r) => [r.key, r.value]));
   const siteName = String(s.site_name ?? "DevSite").replace(/^\"|\"$/g, "") || "DevSite";
   const tagline = String(s.tagline ?? "").replace(/^\"|\"$/g, "") || "Portfolio, blog e negozio online.";
   const footerText = String(s.footer_text ?? "").replace(/^\"|\"$/g, "") || `\u00A9 ${year} ${siteName}. Tutti i diritti riservati.`;
+  const contactEmail = String(s.admin_email ?? "").replace(/^\"|\"$/g, "") || "";
+  const contactLocation = String(s.contact_location ?? "").replace(/^\"|\"$/g, "") || "";
 
   const rawNav = s.nav_items;
   const navItems: NavItem[] = Array.isArray(rawNav)
@@ -82,8 +84,11 @@ export default async function Footer() {
                 Contatti
               </h3>
               <ul className="space-y-2.5">
-                <li className="text-sm text-zinc-400">info@devsite.it</li>
-                <li className="text-sm text-zinc-400">Roma, Italia</li>
+                {contactEmail && <li className="text-sm text-zinc-400">{contactEmail}</li>}
+                {contactLocation && <li className="text-sm text-zinc-400">{contactLocation}</li>}
+                {!contactEmail && !contactLocation && (
+                  <li className="text-sm text-zinc-600 italic">Nessun contatto configurato</li>
+                )}
               </ul>
             </div>
           </div>
@@ -93,7 +98,7 @@ export default async function Footer() {
               {footerText}
             </p>
             <p className="text-xs text-zinc-600">
-              Realizzato con Next.js + Tailwind CSS
+              Forgiato da <span className="text-zinc-500 font-medium">HexLocker</span> &times; <span className="text-zinc-500 font-medium">SmithForgeLabs</span>
             </p>
           </div>
         </div>
